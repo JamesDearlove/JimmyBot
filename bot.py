@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+import os
 import random
 import time
 
@@ -31,4 +32,4 @@ async def mock(ctx, a):
 
     await ctx.send(returnMsg)
 
-bot.run('NDgxMzM1Mzc5MzA4NTc2NzY5.Dl02lQ.y-X6tbHA1Z47vggCVxuipCB5ZPc')
+bot.run(os.environ.get('APIKEY'))
