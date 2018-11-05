@@ -45,7 +45,7 @@ async def mock(ctx, a):
 
 @bot.command(hidden=True)
 async def commit(ctx):
-    build = os.environ.get("COMMIT_HASH")
+    build = os.environ.get("HEROKU_SLUG_COMMIT")
 
     await ctx.send(f"Current commit: ```{build}```")    
 
