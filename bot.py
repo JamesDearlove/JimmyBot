@@ -17,10 +17,23 @@ async def on_ready():
     
 @bot.command()
 async def hello(ctx):
+    '''
+    Says g'day
+    '''
     await ctx.send(":wave: Hello, there!")
 
 @bot.command()
+async def ping(ctx):
+    '''
+    Pong
+    '''
+    await ctx.send("PONG!")
+
+@bot.command()
 async def mock(ctx, a):
+    '''
+    Mocks the given text
+    '''
     msg = ctx.message.content[5:].lower()
     returnMsg = ""
 
