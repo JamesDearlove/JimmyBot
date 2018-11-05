@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 import os
-import random
+from random import choice
 import time
 
 prefix = "!"
@@ -20,12 +20,13 @@ async def hello(ctx):
     '''
     Says g'day
     '''
-    await ctx.send(":wave: Hello, there!")
+    author = ctx.message.author.mention
+    await ctx.send(f":wave: G'day, {author}")
 
 @bot.command()
 async def ping(ctx):
     '''
-    Pong
+    An accurate way to measure ping
     '''
     await ctx.send("PONG!")
 
@@ -38,12 +39,14 @@ async def mock(ctx, a):
     returnMsg = ""
 
     for char in msg:
-        if random.randint(0,1) == 0:
-            returnMsg += char.upper()
-        else:
-            returnMsg += char.lower()
-        time.sleep(0.001)
+        returnMsg += choice((char.upper, char.lower))()
 
     await ctx.send(returnMsg)
+
+@bot.command(hidden=True)
+async def commit(ctx):
+    build = os.environ.get("SOURCE_VERSION")
+
+    await ctx.send(f"Current commit: ```{build}```")    
 
 bot.run(os.environ.get("DISCORD_KEY"))
