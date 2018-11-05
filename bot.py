@@ -5,14 +5,15 @@ import os
 import random
 import time
 
-bot = commands.Bot(command_prefix='!', description='The helpful JimmyD bot')
+prefix = "!"
+bot = commands.Bot(command_prefix=prefix, description="G'day mate, it's JimmyD")
 
 @bot.event
 async def on_ready():
-    print('Logged in as')
+    print("Logged in as")
     print(bot.user.name)
     print(bot.user.id)
-    print('------')
+    print("------")
     
 @bot.command()
 async def hello(ctx):
@@ -32,4 +33,4 @@ async def mock(ctx, a):
 
     await ctx.send(returnMsg)
 
-bot.run(os.environ.get('APIKEY'))
+bot.run(os.environ.get("DISCORD_KEY"))
