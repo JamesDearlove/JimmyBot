@@ -45,7 +45,7 @@ async def mock(ctx, a):
 
 @bot.command(hidden=True)
 async def commit(ctx):
-    build = os.environ.get("SOURCE_VERSION")
+    build = os.environ.get("COMMIT_HASH")
 
     await ctx.send(f"Current commit: ```{build}```")    
 
