@@ -1,4 +1,5 @@
 import discord
+import utils
 from discord.ext import commands
 
 import os
@@ -6,42 +7,52 @@ from random import choice
 import time
 
 prefix = "!"
+activity = ""
 bot = commands.Bot(command_prefix=prefix, description="G'day mate, it's JimmyD")
 
 @bot.event
 async def on_ready():
-    print("Logged in as")
-    print(bot.user.name)
-    print(bot.user.id)
-    print("------")
+    await bot.change_presence(activity=discord.Game(activity))
+    print(f"Logged in as {bot.user.name}")
+    print(f"My ID is {bot.user.id}")
     
 @bot.command()
 async def hello(ctx):
-    '''
-    Says g'day
-    '''
+    """Says g'day"""
     author = ctx.message.author.mention
     await ctx.send(f":wave: G'day, {author}")
 
 @bot.command()
 async def ping(ctx):
-    '''
-    An accurate way to measure ping
-    '''
-    await ctx.send("PONG!")
+    """Pings you back"""
+    author = ctx.message.author.mention
+    await ctx.send(f":ping_pong: Pong! {author}")
 
 @bot.command()
-async def mock(ctx, a):
-    '''
-    Mocks the given text
-    '''
-    msg = ctx.message.content[5:].lower()
-    returnMsg = ""
+async def mock(ctx, *, a = 1):
+    """Mocks selected message (if nothing given, most recent) or mocks text given."""
+    if utils.is_number(a):
+        a = int(a)
+        if a > 99:
+            await ctx.send("I can only get history for the past 99 messages.")
+            return
+        else:
+            msgRaw = await utils.get_history(ctx, a)
+            msg = msgRaw.content
+    else:
+        msg = a
 
-    for char in msg:
-        returnMsg += choice((char.upper, char.lower))()
+    mockedMsg = utils.mock_message(msg)
+    await ctx.send(mockedMsg)
 
-    await ctx.send(returnMsg)
+@bot.command()
+async def history(ctx, a:int):
+    """Gets the history for selected message (up to 99 messages in the past)"""
+    if a > 99:
+        await ctx.send("The limit of message history is 99")
+    else:
+        msg = await utils.get_history(ctx, a)
+        await ctx.send(f"{msg.author}: {msg.content}")
 
 @bot.command(hidden=True)
 async def commit(ctx):
