@@ -14,7 +14,7 @@ bot = commands.Bot(command_prefix=prefix, description="G'day mate, it's JimmyD")
 async def on_ready():
     await bot.change_presence(activity=discord.Game(activity))
     print(f"Logged in as {bot.user.name}")
-    print(f"My ID is {bot.user.id}")
+    print(f"With the ID {bot.user.id}")
     
 @bot.command()
 async def hello(ctx):
@@ -31,6 +31,7 @@ async def ping(ctx):
 @bot.command()
 async def mock(ctx, *, inputArg = "1"):
     """Mocks selected message (if nothing given, most recent) or mocks text given."""
+    author = ""
     if str.isdigit(inputArg):
         inputArg = int(inputArg)
         if inputArg > 99:
@@ -38,12 +39,14 @@ async def mock(ctx, *, inputArg = "1"):
             return
         else:
             msgRaw = await utils.get_history(ctx, inputArg)
+            msgAuthor = msgRaw.author.display_name
+            author = f"**{msgAuthor}:** "
             msg = msgRaw.content
     else:
         msg = inputArg
 
     mockedMsg = utils.mock_message(msg)
-    await ctx.send(mockedMsg)
+    await ctx.send(author + mockedMsg)
 
 @bot.command()
 async def history(ctx, location:int):
@@ -52,7 +55,7 @@ async def history(ctx, location:int):
         await ctx.send("The limit of message history is 99")
     else:
         msg = await utils.get_history(ctx, location)
-        await ctx.send(f"{msg.author}: {msg.content}")
+        await ctx.send(f"**{msg.author}:** {msg.content}")
 
 @bot.command(hidden=True)
 async def commit(ctx):
