@@ -10,10 +10,9 @@ bot = commands.Bot(command_prefix=prefix, description="G'day mate, it's JimmyD")
 
 @bot.event
 async def on_ready():
+    await bot.change_presence(activity=discord.Game("with the API"))
     print("Logged in as")
     print(bot.user.name)
-    print(bot.user.id)
-    print("------")
     
 @bot.command()
 async def hello(ctx):
@@ -42,6 +41,17 @@ async def mock(ctx, a):
         returnMsg += choice((char.upper, char.lower))()
 
     await ctx.send(returnMsg)
+
+@bot.command()
+async def test(ctx, a:int):
+    channel = ctx.message.channel
+    history = await channel.history(limit=10).flatten()
+
+    count = 0
+    for message in history:
+        sendmsg = f"{count}: {message.content}"
+        print(sendmsg)
+        count += 1
 
 @bot.command(hidden=True)
 async def commit(ctx):
