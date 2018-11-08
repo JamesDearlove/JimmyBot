@@ -29,29 +29,29 @@ async def ping(ctx):
     await ctx.send(f":ping_pong: Pong! {author}")
 
 @bot.command()
-async def mock(ctx, *, a = 1):
+async def mock(ctx, *, inputArg = "1"):
     """Mocks selected message (if nothing given, most recent) or mocks text given."""
-    if utils.is_number(a):
-        a = int(a)
-        if a > 99:
+    if str.isdigit(inputArg):
+        inputArg = int(inputArg)
+        if inputArg > 99:
             await ctx.send("I can only get history for the past 99 messages.")
             return
         else:
-            msgRaw = await utils.get_history(ctx, a)
+            msgRaw = await utils.get_history(ctx, inputArg)
             msg = msgRaw.content
     else:
-        msg = a
+        msg = inputArg
 
     mockedMsg = utils.mock_message(msg)
     await ctx.send(mockedMsg)
 
 @bot.command()
-async def history(ctx, a:int):
+async def history(ctx, location:int):
     """Gets the history for selected message (up to 99 messages in the past)"""
-    if a > 99:
+    if location > 99:
         await ctx.send("The limit of message history is 99")
     else:
-        msg = await utils.get_history(ctx, a)
+        msg = await utils.get_history(ctx, location)
         await ctx.send(f"{msg.author}: {msg.content}")
 
 @bot.command(hidden=True)

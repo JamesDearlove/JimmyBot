@@ -2,22 +2,6 @@ import discord
 from random import choice
 import time
 
-def is_number(input):
-    """
-    Checks if input is a number.
-
-    Parameters:
-        input (str|int): Input to check
-
-    Returns:
-        bool: If the input was a number or not
-    """
-    try:
-        int(input)
-    except:
-        return False
-    return True
-
 def mock_message(msg:str):
     """
     Spongebob mocks the given input by randomly varying the case of each letter.
