@@ -5,6 +5,7 @@ from discord.ext import commands
 import os
 from random import choice
 import time
+import math
 
 prefix = "!"
 activity = ""
@@ -39,8 +40,7 @@ async def mock(ctx, *, inputArg = "1"):
             return
         else:
             msgRaw = await utils.get_history(ctx, inputArg)
-            msgAuthor = msgRaw.author.display_name
-            author = f"**{msgAuthor}:** "
+            author = f"**{msgRaw.author.display_name}:** "
             msg = msgRaw.content
     else:
         msg = inputArg
@@ -55,7 +55,34 @@ async def history(ctx, location:int):
         await ctx.send("The limit of message history is 99")
     else:
         msg = await utils.get_history(ctx, location)
-        await ctx.send(f"**{msg.author}:** {msg.content}")
+        await ctx.send(f"**{msg.author.display_name}:** {msg.content}")
+
+@bot.command()
+async def ree(ctx, a:int = 1):
+    """Ree to the power of Euler's Constant"""
+    if a > 7:
+        await ctx.send("I cannot REE higher than e^7")
+    else:
+        returnMsg = "R"
+        numberE = int(math.exp(a))
+        
+        count = 0
+        while count < numberE:
+            returnMsg += "E"
+            count += 1
+
+        await ctx.send(returnMsg)
+
+@bot.command()
+async def synth(ctx, *, inputArg):
+    """Returns text with some a e s t h e t i c""" 
+    output = " ".join(inputArg)
+    await ctx.send(output)
+
+@synth.error
+async def synth_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("Hey mate, I need text to meme")
 
 @bot.command(hidden=True)
 async def commit(ctx):
