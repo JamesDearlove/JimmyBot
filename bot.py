@@ -76,6 +76,7 @@ async def ree(ctx, a:int = 1):
 @bot.command()
 async def synth(ctx, *, inputArg = "1"):
     """Returns text with some a e s t h e t i c""" 
+    author = ""
     if str.isdigit(inputArg):
         inputArg = int(inputArg)
         if inputArg > 99:
