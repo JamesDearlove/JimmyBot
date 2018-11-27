@@ -8,7 +8,7 @@ import time
 import math
 
 prefix = "!"
-activity = ""
+activity = os.environ.get("HEROKU_SLUG_COMMIT")[:8]
 bot = commands.Bot(command_prefix=prefix, description="G'day mate, it's JimmyD")
 
 @bot.event
@@ -36,7 +36,7 @@ async def mock(ctx, *, inputArg = "1"):
     if str.isdigit(inputArg):
         inputArg = int(inputArg)
         if inputArg > 99:
-            await ctx.send("I can only get history for the past 99 messages.")
+            await ctx.send("Hey mate, I can only get history for the past 99 messages.")
             return
         else:
             msgRaw = await utils.get_history(ctx, inputArg)
@@ -52,7 +52,7 @@ async def mock(ctx, *, inputArg = "1"):
 async def history(ctx, location:int):
     """Gets the history for selected message (up to 99 messages in the past)"""
     if location > 99:
-        await ctx.send("The limit of message history is 99")
+        await ctx.send("Hey mate, the limit of message history is 99")
     else:
         msg = await utils.get_history(ctx, location)
         await ctx.send(f"**{msg.author.display_name}:** {msg.content}")
@@ -61,7 +61,7 @@ async def history(ctx, location:int):
 async def ree(ctx, a:int = 1):
     """Ree to the power of Euler's Constant"""
     if a > 7:
-        await ctx.send("I cannot REE higher than e^7")
+        await ctx.send("Hey mate, I cannot REE higher than e^7")
     else:
         returnMsg = "R"
         numberE = int(math.exp(a))
@@ -74,15 +74,27 @@ async def ree(ctx, a:int = 1):
         await ctx.send(returnMsg)
 
 @bot.command()
-async def synth(ctx, *, inputArg):
+async def synth(ctx, *, inputArg = "1"):
     """Returns text with some a e s t h e t i c""" 
-    output = " ".join(inputArg)
-    await ctx.send(output)
+    if str.isdigit(inputArg):
+        inputArg = int(inputArg)
+        if inputArg > 99:
+            await ctx.send("Hey mate, I can only get history for the past 99 messages.")
+            return
+        else:
+            msgRaw = await utils.get_history(ctx, inputArg)
+            author = f"**{msgRaw.author.display_name}:** "
+            msg = msgRaw.content
+    else:
+        msg = inputArg
+
+    output = " ".join(msg)
+    await ctx.send(author + output)
 
 @synth.error
 async def synth_error(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send("Hey mate, I need text to meme")
+    if isinstance(error, commands.CommandInvokeError):
+        await ctx.send("Hey mate, I can't send messages over 2000 characters")
 
 @bot.command(hidden=True)
 async def commit(ctx):
