@@ -63,6 +63,16 @@ async def synth(ctx, *, inputArg = "1"):
     output = " ".join(message[0])
     await ctx.send(message[1] + output)
 
+@bot.command()
+async def b(ctx, *, inputArg = "1"):
+    """Returns text with b replaced with :b:"""
+    message = await utils.get_text(ctx, inputArg)
+
+    output = message[0]
+    for letter in ("b", "B"):
+        output = output.replace(letter, ":b:")
+    await ctx.send(message[1] + output)
+
 @bot.command(hidden=True)
 async def commit(ctx):
     await ctx.send(f"Current commit: ```{currentCommit}```")    
