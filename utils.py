@@ -19,9 +19,9 @@ def mock_message(msg:str):
 
     return returnMsg
 
-async def get_history(ctx, message:int):
+async def get_message(ctx, message:int):
     """
-    Returns the history for a given channel and location (relative to context).
+    Returns a previous message for a given channel and location (relative to context).
 
     Parameters:
         ctx (context): Passthrough for context from command.
@@ -35,3 +35,29 @@ async def get_history(ctx, message:int):
 
     returnMsg = history[message]
     return returnMsg
+
+async def get_text(ctx, inputArg):
+    """
+    Returns the text given as the argument or the message from history with the author.
+
+    Parameters:
+        ctx (context): Passthrough for context from command.
+        inputArg (string): Argument given from user.
+    
+    Returns:
+        message, author (tuple): The message to be modified and author if applicable.
+    """
+    author = ""
+    if str.isdigit(inputArg):
+        inputArg = int(inputArg)
+        if inputArg > 99:
+            await ctx.send("Hey mate, I can only get history for the past 99 messages.")
+            return
+        else:
+            msgRaw = await get_message(ctx, inputArg)
+            author = f"**{msgRaw.author.display_name}:** "
+            msg = msgRaw.content
+    else:
+        msg = inputArg
+
+    return msg, author

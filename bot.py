@@ -7,8 +7,10 @@ from random import choice
 import time
 import math
 
+currentCommit = os.environ.get("HEROKU_SLUG_COMMIT")
+
 prefix = "!"
-activity = os.environ.get("HEROKU_SLUG_COMMIT")[:8]
+activity = currentCommit[:7]
 bot = commands.Bot(command_prefix=prefix, description="G'day mate, it's JimmyD")
 
 @bot.event
@@ -32,30 +34,10 @@ async def ping(ctx):
 @bot.command()
 async def mock(ctx, *, inputArg = "1"):
     """Mocks selected message (if nothing given, most recent) or mocks text given."""
-    author = ""
-    if str.isdigit(inputArg):
-        inputArg = int(inputArg)
-        if inputArg > 99:
-            await ctx.send("Hey mate, I can only get history for the past 99 messages.")
-            return
-        else:
-            msgRaw = await utils.get_history(ctx, inputArg)
-            author = f"**{msgRaw.author.display_name}:** "
-            msg = msgRaw.content
-    else:
-        msg = inputArg
+    message = await utils.get_text(ctx, inputArg)
 
-    mockedMsg = utils.mock_message(msg)
-    await ctx.send(author + mockedMsg)
-
-@bot.command()
-async def history(ctx, location:int):
-    """Gets the history for selected message (up to 99 messages in the past)"""
-    if location > 99:
-        await ctx.send("Hey mate, the limit of message history is 99")
-    else:
-        msg = await utils.get_history(ctx, location)
-        await ctx.send(f"**{msg.author.display_name}:** {msg.content}")
+    mockedMsg = utils.mock_message(message[0])
+    await ctx.send(message[1] + mockedMsg)
 
 @bot.command()
 async def ree(ctx, a:int = 1):
@@ -76,31 +58,19 @@ async def ree(ctx, a:int = 1):
 @bot.command()
 async def synth(ctx, *, inputArg = "1"):
     """Returns text with some a e s t h e t i c""" 
-    author = ""
-    if str.isdigit(inputArg):
-        inputArg = int(inputArg)
-        if inputArg > 99:
-            await ctx.send("Hey mate, I can only get history for the past 99 messages.")
-            return
-        else:
-            msgRaw = await utils.get_history(ctx, inputArg)
-            author = f"**{msgRaw.author.display_name}:** "
-            msg = msgRaw.content
-    else:
-        msg = inputArg
+    message = await utils.get_text(ctx, inputArg)
 
-    output = " ".join(msg)
-    await ctx.send(author + output)
+    output = " ".join(message[0])
+    await ctx.send(message[1] + output)
 
+@bot.command(hidden=True)
+async def commit(ctx):
+    await ctx.send(f"Current commit: ```{currentCommit}```")    
+
+# Error handlers
 @synth.error
 async def synth_error(ctx, error):
     if isinstance(error, commands.CommandInvokeError):
         await ctx.send("Hey mate, I can't send messages over 2000 characters")
-
-@bot.command(hidden=True)
-async def commit(ctx):
-    build = os.environ.get("HEROKU_SLUG_COMMIT")
-
-    await ctx.send(f"Current commit: ```{build}```")    
 
 bot.run(os.environ.get("DISCORD_KEY"))
