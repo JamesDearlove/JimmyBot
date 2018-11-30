@@ -1,6 +1,8 @@
 import discord
 import utils
+import asyncio
 from discord.ext import commands
+from discord.utils import get
 
 import os
 from random import choice
@@ -11,14 +13,29 @@ currentCommit = os.environ.get("HEROKU_SLUG_COMMIT")
 
 prefix = "!"
 activity = currentCommit[:7]
-bot = commands.Bot(command_prefix=prefix, description="G'day mate, it's JimmyD")
+default_text = 303486382708359169
 
-@bot.event
-async def on_ready():
-    await bot.change_presence(activity=discord.Game(activity))
-    print(f"Logged in as {bot.user.name}")
-    print(f"With the ID {bot.user.id}")
-    
+class CustoBot(commands.Bot):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # create the background task and run it in the background
+        self.bg_task = self.loop.create_task(self.my_background_task())
+
+    async def on_ready(self):
+        await bot.change_presence(activity=discord.Game(activity))
+        print(f"Logged in as {bot.user.name}")
+        print(f"With the ID {bot.user.id}")
+
+    async def my_background_task(self):
+        await self.wait_until_ready() 
+        channel = self.get_channel(default_text) # channel ID goes here
+        while not self.is_closed():
+            await channel.send("Hi")
+            await asyncio.sleep(1) # task runs every 60 seconds
+
+bot = CustoBot(command_prefix=prefix, description="G'day mate, it's JimmyD")
+
 @bot.command()
 async def hello(ctx):
     """Says g'day"""
