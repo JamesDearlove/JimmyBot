@@ -1,40 +1,45 @@
 import discord
 import utils
 import asyncio
+import os
+import math
+from datetime import datetime, time
+from random import choice
+
 from discord.ext import commands
 from discord.utils import get
-
-import os
-from random import choice
-import time
-import math
 
 currentCommit = os.environ.get("HEROKU_SLUG_COMMIT")
 
 prefix = "!"
 activity = currentCommit[:7]
-default_text = 303486382708359169
+main_channel = int(os.environ.get("DEFAULT_CHANNEL_ID"))
 
-class CustoBot(commands.Bot):
+class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # create the background task and run it in the background
-        self.bg_task = self.loop.create_task(self.my_background_task())
+        self.bg_task = self.loop.create_task(self.bot_schedule())
 
     async def on_ready(self):
         await bot.change_presence(activity=discord.Game(activity))
         print(f"Logged in as {bot.user.name}")
         print(f"With the ID {bot.user.id}")
 
-    async def my_background_task(self):
+    # Runs tasks at set times
+    async def bot_schedule(self):
         await self.wait_until_ready() 
-        channel = self.get_channel(default_text) # channel ID goes here
+        channel = self.get_channel(main_channel)
         while not self.is_closed():
-            await channel.send("Hi")
-            await asyncio.sleep(1) # task runs every 60 seconds
+            minutesToSleep = 60 - datetime.utcnow().minute % 60
+            await asyncio.sleep(minutesToSleep * 60)
+            check_time = datetime.utcnow().time()
 
-bot = CustoBot(command_prefix=prefix, description="G'day mate, it's JimmyD")
+            # Good morning messasge (9am)
+            if check_time >= time(23,0) and check_time <= time(23,5) :
+                await channel.send("Good Morning!")
+            
+bot = MyBot(command_prefix=prefix, description="G'day mate, it's JimmyD")
 
 @bot.command()
 async def hello(ctx):
