@@ -1,6 +1,7 @@
 import discord
 from random import choice
 import time
+import feedparser
 
 def mock_message(msg:str):
     """
@@ -61,3 +62,16 @@ async def get_text(ctx, inputArg):
         msg = inputArg
 
     return msg, author
+
+def get_xkcd():
+    """
+    Returns the latest xkcd comic URL
+
+    Returns:
+        str: The URL to the latest xkcd comic
+    """
+    xkcd_feed =  "https://xkcd.com/rss.xml"
+    d = feedparser.parse(xkcd_feed)
+
+    latest = d["entries"][0]
+    return latest["link"]

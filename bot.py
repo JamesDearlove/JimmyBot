@@ -3,6 +3,8 @@ import utils
 import asyncio
 import os
 import math
+import feedparser
+import requests
 from datetime import datetime, time
 from random import choice
 
@@ -38,6 +40,15 @@ class MyBot(commands.Bot):
             # Good morning messasge (9am)
             if check_time >= time(23,0) and check_time <= time(23,5) :
                 await channel.send("Good Morning!")
+            
+            # New xkcd comic (3pm)
+            if check_time >= time(5,0) and check_time <= time(5,5) :
+                await asyncio.sleep(60)
+                check_day = datetime.utcnow().weekday()
+                if check_day == 0 or check_day == 2 or check_day == 4 :
+                    xkcd_comic = utils.get_xkcd()
+                    await channel.send("New xkcd comic!")
+                    await channel.send(xkcd_comic)
             
 bot = MyBot(command_prefix=prefix, description="G'day mate, it's JimmyD")
 
@@ -94,6 +105,13 @@ async def b(ctx, *, inputArg = "1"):
     for letter in ("b", "B"):
         output = output.replace(letter, ":b:")
     await ctx.send(message[1] + output)
+
+@bot.command()
+async def xkcd(ctx):
+    """Gets a random xkcd comic"""
+    random_redirect = requests.get("http://c.xkcd.com/random/comic/")
+    comic_url = random_redirect.history[1].url
+    await ctx.send(comic_url)
 
 @bot.command(hidden=True)
 async def commit(ctx):
