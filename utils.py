@@ -75,3 +75,18 @@ def get_xkcd():
 
     latest = d["entries"][0]
     return latest["link"]
+
+def jims_picker():
+    """
+    Picks a random Jim's group company
+
+    Returns:
+        str: A Jim's group company
+    """
+    companies = []
+    with open("jims.txt", mode="r") as data:
+        for company in data :
+            companies.append(company)
+    selection = choice(companies)
+    return f"Jim's {selection}"
+    

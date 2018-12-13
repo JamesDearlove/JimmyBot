@@ -14,7 +14,7 @@ from discord.utils import get
 currentCommit = os.environ.get("HEROKU_SLUG_COMMIT")
 
 prefix = "!"
-activity = currentCommit[:7]
+activity = utils.jims_picker()
 main_channel = int(os.environ.get("DEFAULT_CHANNEL_ID"))
 
 class MyBot(commands.Bot):
@@ -33,9 +33,14 @@ class MyBot(commands.Bot):
         await self.wait_until_ready() 
         channel = self.get_channel(main_channel)
         while not self.is_closed():
+            # Sleep until the next hour
             minutesToSleep = 60 - datetime.utcnow().minute % 60
             await asyncio.sleep(minutesToSleep * 60)
             check_time = datetime.utcnow().time()
+
+            # Update presence message
+            activity = utils.jims_picker()
+            await bot.change_presence(activity=discord.Game(activity))
 
             # Good morning messasge (9am)
             if check_time >= time(23,0) and check_time <= time(23,5) :
@@ -43,9 +48,10 @@ class MyBot(commands.Bot):
             
             # New xkcd comic (3pm)
             if check_time >= time(5,0) and check_time <= time(5,5) :
-                await asyncio.sleep(60)
                 check_day = datetime.utcnow().weekday()
                 if check_day == 0 or check_day == 2 or check_day == 4 :
+                    # Sleep for 60 seconds to ensure comic is published
+                    await asyncio.sleep(60)
                     xkcd_comic = utils.get_xkcd()
                     await channel.send("New xkcd comic!")
                     await channel.send(xkcd_comic)
