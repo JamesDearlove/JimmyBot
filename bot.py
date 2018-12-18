@@ -5,6 +5,7 @@ import os
 import math
 import feedparser
 import requests
+import bom
 from datetime import datetime, time
 from random import choice
 
@@ -16,6 +17,22 @@ currentCommit = os.environ.get("HEROKU_SLUG_COMMIT")
 prefix = "!"
 activity = utils.jims_picker()
 main_channel = int(os.environ.get("DEFAULT_CHANNEL_ID"))
+
+bom_icons = {
+    1: "sunny",
+    2: "crescent_moon",
+    3: "white_sun_cloud",
+    4: "cloud",
+    8: "cloud_rain",
+    9: "wind_blowing_face",
+    11: "white_sun_rain_cloud",
+    12: "cloud_rain",
+    15: "snowflake",
+    16: "thunder_cloud_rain",
+    17: "white_sun_rain_cloud",
+    18: "cloud_rain",
+    19: "cyclone"
+}
 
 class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
@@ -118,6 +135,24 @@ async def xkcd(ctx):
     random_redirect = requests.get("http://c.xkcd.com/random/comic/")
     comic_url = random_redirect.history[1].url
     await ctx.send(comic_url)
+
+@bot.command()
+async def weather(ctx):
+    await ctx.message.add_reaction("🤔")
+
+    observation = bom.get_observation("Coolangatta")
+    forecast = bom.get_forecast("Robina", 0)
+    precis = forecast["precis"]
+    forecast_icon = forecast["forecast_icon_code"]
+    forecast_icon = bom_icons[int(forecast_icon)]
+    current_temp = observation["air_temperature"]
+    apparent_temp = observation["apparent_temp"]
+
+    await ctx.send(f"Currently the temperature is {current_temp}°C (feels like {apparent_temp}°C) \nThe forecast is: ")
+    await ctx.send(f":{forecast_icon}:")
+    await ctx.send(precis)
+
+    await ctx.message.remove_reaction("🤔", bot.user)
 
 @bot.command(hidden=True)
 async def commit(ctx):
