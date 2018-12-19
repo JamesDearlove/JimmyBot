@@ -1,6 +1,26 @@
 import urllib.request
 import xml.etree.ElementTree as ET
 
+icon_map = {
+    1: "☀",
+    2: "🌙",
+    3: "⛅",
+    4: "☁",
+    6: "☀",
+    8: "🌧",
+    9: "🌬",
+    10: "🌫️",
+    11: "🌦",
+    12: "🌧",
+    13: "🌬",
+    14: "❄",
+    15: "❄",
+    16: "⛈",
+    17: "🌦",
+    18: "🌧",
+    19: "🌀"
+}
+
 # QLD Precis XML - http://www.bom.gov.au/catalogue/data-feeds.shtml#precis
 def get_forecast(location, index):
     data = urllib.request.urlopen("ftp://ftp.bom.gov.au/anon/gen/fwo/IDQ11295.xml").read().decode('utf-8')
@@ -18,6 +38,8 @@ def get_forecast(location, index):
     return(forecast_dict)
 
 # QLD Observation XML - http://www.bom.gov.au/catalogue/data-feeds.shtml#obs-state
+
+# TODO: Get full observation not just latest
 def get_observation(location):
     data = urllib.request.urlopen("ftp://ftp.bom.gov.au/anon/gen/fwo/IDQ60920.xml").read().decode('utf-8')
     root = ET.fromstring(data)
@@ -32,6 +54,20 @@ def get_observation(location):
     for element in observation[0][0]:
         observation_dict[element.attrib["type"]] = element.text
     return(observation_dict)
+
+def icon_emote(icon:int):
+    return icon_map[icon]
+
+# TODO: Gets the latest image for a specified location
+def get_radar_image(location):
+    pass
+
+# TODO: Gets the locations for a specified area/latlon
+def get_forecast_loc(location):
+    pass
+
+def get_observ_loc(location):
+    pass
 
 def main():
     print(get_forecast("Robina", 1))
