@@ -25,7 +25,8 @@ class MyBot(commands.Bot):
         self.bg_task = self.loop.create_task(self.bot_schedule())
 
     async def on_ready(self):
-        await bot.change_presence(activity=discord.Game(activity))
+        #await bot.change_presence(activity=discord.Game(activity))
+        await bot.change_presence(activity=discord.Activity(name="Jim's Christmas Music", type=2))
         print(f"Logged in as {bot.user.name}")
         print(f"With the ID {bot.user.id}")
 
