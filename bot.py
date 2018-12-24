@@ -29,24 +29,37 @@ class MyBot(commands.Bot):
         print(f"Logged in as {bot.user.name}")
         print(f"With the ID {bot.user.id}")
 
+        
+
     # Runs tasks at set times
     async def bot_schedule(self):
         await self.wait_until_ready() 
         channel = self.get_channel(main_channel)
+
         while not self.is_closed():
             # Sleep until the next hour
             minutesToSleep = 60 - datetime.utcnow().minute % 60
             await asyncio.sleep(minutesToSleep * 60)
             check_time = datetime.utcnow().time()
+            check_date = datetime.utcnow().date()
 
             # Update presence message
             activity = utils.jims_picker()
             await bot.change_presence(activity=discord.Game(activity))
 
+            # TODO: Setup date/time schedule from calendar or file
             # Good morning messasge (9am)
             if check_time >= time(23,0) and check_time <= time(23,5) :
-                await channel.send("Good Morning!")
-            
+                if check_date.day == 24 and check_date.month == 12 :
+                    await channel.send(":christmas_tree: Merry Christmas! :christmas_tree:")
+                else:
+                    await channel.send("Good Morning!")
+
+            # Happy new year
+            if check_date.day == 31 and check_date.month == 12 :
+                # if check_time >= time(14,0) and check_time <= time(14,5) :
+                await channel.send(":tada: Happy New Year! :tada:")
+
             # New xkcd comic (3pm)
             if check_time >= time(5,0) and check_time <= time(5,5) :
                 check_day = datetime.utcnow().weekday()
