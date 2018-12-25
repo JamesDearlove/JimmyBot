@@ -45,8 +45,8 @@ class MyBot(commands.Bot):
             check_date = datetime.utcnow().date()
 
             # Update presence message
-            activity = utils.jims_picker()
-            await bot.change_presence(activity=discord.Game(activity))
+            # activity = utils.jims_picker()
+            # await bot.change_presence(activity=discord.Game(activity))
 
             # TODO: Setup date/time schedule from calendar or file
             # Good morning messasge (9am)
