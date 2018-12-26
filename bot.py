@@ -25,12 +25,9 @@ class MyBot(commands.Bot):
         self.bg_task = self.loop.create_task(self.bot_schedule())
 
     async def on_ready(self):
-        #await bot.change_presence(activity=discord.Game(activity))
-        await bot.change_presence(activity=discord.Activity(name="Jim's Christmas Music", type=2))
+        await bot.change_presence(activity=discord.Game(activity))
         print(f"Logged in as {bot.user.name}")
         print(f"With the ID {bot.user.id}")
-
-        
 
     # Runs tasks at set times
     async def bot_schedule(self):
@@ -45,8 +42,8 @@ class MyBot(commands.Bot):
             check_date = datetime.utcnow().date()
 
             # Update presence message
-            # activity = utils.jims_picker()
-            # await bot.change_presence(activity=discord.Game(activity))
+            activity = utils.jims_picker()
+            await bot.change_presence(activity=discord.Game(activity))
 
             # TODO: Setup date/time schedule from calendar or file
             # Good morning messasge (9am)
