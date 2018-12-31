@@ -28,7 +28,7 @@ class MyBot(commands.Bot):
         await bot.change_presence(activity=discord.Game(activity))
         print(f"Logged in as {bot.user.name}")
         print(f"With the ID {bot.user.id}")
-
+        
     # Runs tasks at set times
     async def bot_schedule(self):
         await self.wait_until_ready() 
@@ -55,8 +55,8 @@ class MyBot(commands.Bot):
 
             # Happy new year
             if check_date.day == 31 and check_date.month == 12 :
-                # if check_time >= time(14,0) and check_time <= time(14,5) :
-                await channel.send(":tada: Happy New Year! :tada:")
+                if check_time >= time(14,0) and check_time <= time(14,5) :
+                    await channel.send(":tada: Happy New Year! :tada:")
 
             # New xkcd comic (3pm)
             if check_time >= time(5,0) and check_time <= time(5,5) :
