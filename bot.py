@@ -135,19 +135,26 @@ async def xkcd(ctx):
 async def weather(ctx):
     """Gets the current weather"""
     await ctx.message.add_reaction("🤔")
+    default_loc = "Coolangatta"
 
-    observation = bom.get_observation("Coolangatta")
-    forecast = bom.get_forecast("Coolangatta", 0)
+    observation = bom.get_observation(default_loc)
+    forecast = bom.get_forecast(default_loc, 0)
     precis = forecast["precis"]
     forecast_icon = int(forecast["forecast_icon_code"])
     forecast_icon = bom.icon_emote(forecast_icon)
     current_temp = observation["air_temperature"]
     apparent_temp = observation["apparent_temp"]
 
-    await ctx.send(f"Currently the temperature is {current_temp}°C (feels like {apparent_temp}°C)\n{precis}")
+    await ctx.message.remove_reaction("🤔", bot.user)
+
+    await ctx.send(f"Currently at {default_loc} the temperature is {current_temp}°C (feels like {apparent_temp}°C)\n{precis}")
     await ctx.send(forecast_icon)
 
-    await ctx.message.remove_reaction("🤔", bot.user)
+@bot.command()
+async def today(ctx):
+    holiday = utils.today_holiday()
+
+    await ctx.send(f"Today is {holiday}!")
 
 @bot.command(hidden=True)
 async def commit(ctx):

@@ -2,6 +2,8 @@ import discord
 from random import choice
 import time
 import feedparser
+import requests
+from bs4 import BeautifulSoup
 
 def mock_message(msg:str):
     """
@@ -89,4 +91,11 @@ def jims_picker():
             companies.append(company)
     selection = choice(companies)
     return f"Jim's {selection}"
-    
+
+def today_holiday():
+    html = requests.get("https://www.timeanddate.com/holidays/fun/").content
+    soup = BeautifulSoup(html, 'html.parser')
+
+    holiday = soup.find(class_="hl").a.string
+
+    return holiday
