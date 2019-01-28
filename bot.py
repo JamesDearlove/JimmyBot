@@ -17,6 +17,7 @@ currentCommit = os.environ.get("HEROKU_SLUG_COMMIT")
 prefix = "!"
 activity = utils.jims_picker()
 main_channel = int(os.environ.get("DEFAULT_CHANNEL_ID"))
+main_guild = int(os.environ.get("DEFAULT_GUILD_ID"))
 
 class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
@@ -35,39 +36,47 @@ class MyBot(commands.Bot):
         channel = self.get_channel(main_channel)
 
         while not self.is_closed():
-            # Sleep until the next hour
-            minutesToSleep = 60 - datetime.utcnow().minute % 60
-            await asyncio.sleep(minutesToSleep * 60)
-            check_time = datetime.utcnow().time()
-            check_date = datetime.utcnow().date()
-
             # Update presence message
             activity = utils.jims_picker()
             await bot.change_presence(activity=discord.Game(activity))
 
-            # TODO: Setup date/time schedule from calendar or file
-            # Good morning messasge (9am)
-            if check_time >= time(23,0) and check_time <= time(23,5) :
-                if check_date.day == 24 and check_date.month == 12 :
-                    await channel.send(":christmas_tree: Merry Christmas! :christmas_tree:")
-                else:
-                    await channel.send("Good Morning!")
+            # Grabs the current time (Brisbane timezone)
+            check_time = utils.get_local_time().time()
 
-            # Happy new year
-            if check_date.day == 31 and check_date.month == 12 :
-                if check_time >= time(14,0) and check_time <= time(14,5) :
-                    await channel.send(":tada: Happy New Year! :tada:")
+            # Good morning message (9am)
+            if check_time >= time(9,0) and check_time <= time(9,2):
+                msg = await channel.send("Good Morning!")
+                # Checks custom calendar first. 
+                # If no event, grab today's fun holiday 
+                today_event = utils.get_today_event()
+                if today_event != None:
+                    # Determine if its a holiday or birthday, react differently to each
+                    if today_event[1] == "H":
+                        msg = await channel.send(f"Today is {today_event[2]}!")
+                    elif today_event[1] == "B":
+                        user = bot.get_user(int(today_event[2]))
+                        msg = await channel.send(f"Today is {user.mention}'s Birthday!")
+                        await msg.add_reaction("🎂")
+                        return
+                else:
+                    holiday = utils.get_fun_holiday()   
+                    msg = await channel.send(f"Today is {holiday}!")
+                
+                emojis = bot.get_guild(main_guild).emojis
+                await msg.add_reaction(choice(emojis))
 
             # New xkcd comic (3pm)
-            if check_time >= time(5,0) and check_time <= time(5,5) :
+            if check_time >= time(15,1) and check_time <= time(15,3) :
                 check_day = datetime.utcnow().weekday()
                 if check_day == 0 or check_day == 2 or check_day == 4 :
-                    # Sleep for 60 seconds to ensure comic is published
-                    await asyncio.sleep(60)
                     xkcd_comic = utils.get_xkcd()
                     await channel.send("New xkcd comic!")
                     await channel.send(xkcd_comic)
             
+            # Sleep until the next hour
+            minutesToSleep = 60 - datetime.utcnow().minute % 60
+            await asyncio.sleep(minutesToSleep * 60)
+
 bot = MyBot(command_prefix=prefix, description="G'day mate, it's JimmyD")
 
 @bot.command()
@@ -149,31 +158,6 @@ async def weather(ctx):
 
     await ctx.send(f"Currently at {default_loc} the temperature is {current_temp}°C (feels like {apparent_temp}°C)\n{precis}")
     await ctx.send(forecast_icon)
-
-@bot.command()
-async def today(ctx):
-    events = []
-    today_event = None
-    with open("events.csv", mode="r") as data:
-        for event in data :
-            events.append(event.split(","))
-    date = utils.get_local_time()
-    for event in events:
-        date_str = f"{event[0]}-{date.year}"
-        event_date = datetime.strptime(date_str, "%d-%M-%Y")
-        if date.date() == event_date.date():
-            today_event = event
-            break
-
-    if today_event != None:
-        if today_event[1] == "H":
-            await ctx.send(f"Today is {today_event[2]}!")
-        elif today_event[1] == "B":
-            user = bot.get_user(int(today_event[2]))
-            msg = await ctx.send(f"Today is {user.mention}'s Birthday!")
-    else:
-        holiday = utils.get_fun_holiday()
-        await ctx.send(f"Today is {holiday}!")
 
 @bot.command(hidden=True)
 async def commit(ctx):
