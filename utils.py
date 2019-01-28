@@ -93,8 +93,37 @@ def jims_picker():
             companies.append(company)
     selection = choice(companies)
     return f"Jim's {selection}"
-            
+
+def get_today_event():
+    """
+    Returns today's event from the custom event list. Returns None if no event is on today
+
+    Returns:
+        List: List of information for event. [Date, Type (H,B), Name/User ID, None/Name]
+    """
+    events = []
+    today_event = None
+    with open("events.csv", mode="r") as data:
+        for event in data :
+            events.append(event.split(","))
+
+    date = get_local_time()
+    for event in events:
+        date_str = f"{event[0]}-{date.year}"
+        event_date = datetime.strptime(date_str, "%d-%M-%Y")
+        if date.date() == event_date.date():
+            today_event = event
+            break
+    
+    return today_event
+   
 def get_fun_holiday():
+    """
+    Returns a fun holiday from www.timedate.com
+
+    Returns:
+        str: Today's fun holiday
+    """
     html = requests.get("https://www.timeanddate.com/holidays/fun/").content
     soup = BeautifulSoup(html, 'html.parser')
 
@@ -103,6 +132,9 @@ def get_fun_holiday():
 def get_local_time():
     """
     Returns a date time object for the Australia/Brisbane timezone
+
+    Returns:
+        datetime: Datetime object that is in the Brisbane timezone
     """
     utc_time = datetime.utcnow()
     tz = pytz.timezone('Australia/Brisbane')
