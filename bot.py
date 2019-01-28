@@ -152,9 +152,28 @@ async def weather(ctx):
 
 @bot.command()
 async def today(ctx):
-    holiday = utils.today_holiday()
+    events = []
+    today_event = None
+    with open("events.csv", mode="r") as data:
+        for event in data :
+            events.append(event.split(","))
+    date = utils.get_local_time()
+    for event in events:
+        date_str = f"{event[0]}-{date.year}"
+        event_date = datetime.strptime(date_str, "%d-%M-%Y")
+        if date.date() == event_date.date():
+            today_event = event
+            break
 
-    await ctx.send(f"Today is {holiday}!")
+    if today_event != None:
+        if today_event[1] == "H":
+            await ctx.send(f"Today is {today_event[2]}!")
+        elif today_event[1] == "B":
+            user = bot.get_user(int(today_event[2]))
+            msg = await ctx.send(f"Today is {user.mention}'s Birthday!")
+    else:
+        holiday = utils.get_fun_holiday()
+        await ctx.send(f"Today is {holiday}!")
 
 @bot.command(hidden=True)
 async def commit(ctx):
@@ -164,6 +183,6 @@ async def commit(ctx):
 @synth.error
 async def synth_error(ctx, error):
     if isinstance(error, commands.CommandInvokeError):
-        await ctx.send("Hey mate, I can't send messages over 2000 characters")
+        await ctx.send("Sorry mate, I can't send messages over 2000 characters")
 
 bot.run(os.environ.get("DISCORD_KEY"))

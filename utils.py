@@ -3,6 +3,8 @@ from random import choice
 import time
 import feedparser
 import requests
+from datetime import datetime
+import pytz
 from bs4 import BeautifulSoup
 
 def mock_message(msg:str):
@@ -91,11 +93,17 @@ def jims_picker():
             companies.append(company)
     selection = choice(companies)
     return f"Jim's {selection}"
-
-def today_holiday():
+            
+def get_fun_holiday():
     html = requests.get("https://www.timeanddate.com/holidays/fun/").content
     soup = BeautifulSoup(html, 'html.parser')
 
-    holiday = soup.find(class_="hl").a.string
+    return soup.find(class_="hl").a.string
 
-    return holiday
+def get_local_time():
+    """
+    Returns a date time object for the Australia/Brisbane timezone
+    """
+    utc_time = datetime.utcnow()
+    tz = pytz.timezone('Australia/Brisbane')
+    return pytz.utc.localize(utc_time, is_dst=None).astimezone(tz)
