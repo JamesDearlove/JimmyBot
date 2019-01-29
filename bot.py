@@ -46,24 +46,25 @@ class MyBot(commands.Bot):
             # Good morning message (9am)
             if check_time >= time(9,0) and check_time <= time(9,2):
                 msg = await channel.send("Good Morning!")
+                emojis = bot.get_guild(main_guild).emojis
+               
                 # Checks custom calendar first. 
                 # If no event, grab today's fun holiday 
                 today_event = utils.get_today_event()
-                if today_event != None:
-                    # Determine if its a holiday or birthday, react differently to each
-                    if today_event[1] == "H":
-                        msg = await channel.send(f"Today is {today_event[2]}!")
-                    elif today_event[1] == "B":
-                        user = bot.get_user(int(today_event[2]))
-                        msg = await channel.send(f"Today is {user.mention}'s Birthday!")
-                        await msg.add_reaction("🎂")
-                        return
+                if today_event == []:
+                    todays_holidays = utils.get_fun_holiday()
+                    holiday = choice(todays_holidays)
+                    msg = await channel.send(f"Today is {holiday[1]}!")
+                    await msg.add_reaction(choice(emojis))
                 else:
-                    holiday = utils.get_fun_holiday()   
-                    msg = await channel.send(f"Today is {holiday}!")
-                
-                emojis = bot.get_guild(main_guild).emojis
-                await msg.add_reaction(choice(emojis))
+                    for event in today_event:
+                        if event[0] == "H":
+                            msg = await channel.send(f"Today is {event[1]}!")
+                            await msg.add_reaction(choice(emojis))
+                        elif event[0] == "B":
+                            user = bot.get_user(int(event[1]))
+                            msg = await channel.send(f"Today is {user.mention}'s Birthday!")
+                            await msg.add_reaction("🎂")
 
             # New xkcd comic (3pm)
             if check_time >= time(15,1) and check_time <= time(15,3) :
