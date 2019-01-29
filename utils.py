@@ -102,7 +102,7 @@ def get_today_event():
         List: List of information for event. [Date, Type (H,B), Name/User ID, None/Name]
     """
     events = []
-    today_event = None
+    today_event = []
     with open("events.csv", mode="r") as data:
         for event in data :
             events.append(event.split(","))
@@ -112,8 +112,8 @@ def get_today_event():
         date_str = f"{event[0]}-{date.year}"
         event_date = datetime.strptime(date_str, "%d-%M-%Y")
         if date.date() == event_date.date():
-            today_event = event
-            break
+            event_data = [event[1], event[2]]
+            today_event.append(event_data)
     
     return today_event
    
@@ -122,12 +122,26 @@ def get_fun_holiday():
     Returns a fun holiday from www.timedate.com
 
     Returns:
-        str: Today's fun holiday
+        List: List of today's events formatted ["H", name]
     """
+    # current_date = get_local_time()
+    current_date = datetime(2019,2,20)
+    today_event = []
+
+    # Grabs the fun holiday table from the website
     html = requests.get("https://www.timeanddate.com/holidays/fun/").content
     soup = BeautifulSoup(html, 'html.parser')
+    holiday_table = soup.find_all(class_='c0') + soup.find_all(class_='c1') + soup.find_all(class_='hl')
 
-    return soup.find(class_="hl").a.string
+    # Finds today's events in the table and adds them to the list
+    for row in holiday_table:
+        date_string = row.find('th').get_text(strip=True)
+        event_string = row.find('a').get_text(strip=True)
+        holiday_date = datetime.strptime(date_string, '%d %b')
+        if holiday_date.day == current_date.day and holiday_date.month == current_date.month:
+            today_event.append(["H", event_string])
+    
+    return today_event
 
 def get_local_time():
     """
@@ -139,3 +153,6 @@ def get_local_time():
     utc_time = datetime.utcnow()
     tz = pytz.timezone('Australia/Brisbane')
     return pytz.utc.localize(utc_time, is_dst=None).astimezone(tz)
+
+if __name__ == "__main__":
+    get_fun_holiday()
