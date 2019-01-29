@@ -45,7 +45,7 @@ class MyBot(commands.Bot):
             # Good morning message (9am)
             if time(9,0) <= check_time <= time(9,2):
                 await channel.send("Good Morning!")
-                self.send_motd()
+                await self.send_motd()
 
             # New xkcd comic (3pm)
             if time(15,0) <= check_time <= time(15,2):
