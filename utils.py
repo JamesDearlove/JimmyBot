@@ -128,7 +128,7 @@ def get_fun_holiday():
     today_event = []
 
     # Grabs the fun holiday table from the website
-    html = requests.get("https://www.timeanddate.com/holidays/fun/").content
+    html = requests.get("https://www.timeanddate.com/holidays/fun?country=29&ftz=179").content
     soup = BeautifulSoup(html, 'html.parser')
     holiday_table = soup.find_all(class_='c0') + soup.find_all(class_='c1') + soup.find_all(class_='hl')
 
