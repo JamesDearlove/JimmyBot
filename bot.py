@@ -26,7 +26,6 @@ class MyBot(commands.Bot):
         self.bg_task = self.loop.create_task(self.bot_schedule())
 
     async def on_ready(self):
-        await bot.change_presence(activity=discord.Game(activity))
         print(f"Logged in as {bot.user.name}")
         print(f"With the ID {bot.user.id}")
         
@@ -44,32 +43,15 @@ class MyBot(commands.Bot):
             check_time = utils.get_local_time().time()
 
             # Good morning message (9am)
-            if check_time >= time(9,0) and check_time <= time(9,2):
-                msg = await channel.send("Good Morning!")
-                emojis = bot.get_guild(main_guild).emojis
-               
-                # Checks custom calendar first. 
-                # If no event, grab today's fun holiday 
-                today_event = utils.get_today_event()
-                if today_event == []:
-                    todays_holidays = utils.get_fun_holiday()
-                    holiday = choice(todays_holidays)
-                    msg = await channel.send(f"Today is {holiday[1]}!")
-                    await msg.add_reaction(choice(emojis))
-                else:
-                    for event in today_event:
-                        if event[0] == "H":
-                            msg = await channel.send(f"Today is {event[1]}!")
-                            await msg.add_reaction(choice(emojis))
-                        elif event[0] == "B":
-                            user = bot.get_user(int(event[1]))
-                            msg = await channel.send(f"Today is {user.mention}'s Birthday!")
-                            await msg.add_reaction("🎂")
+            if time(9,0) <= check_time <= time(9,2):
+                await channel.send("Good Morning!")
+                self.send_motd()
 
             # New xkcd comic (3pm)
-            if check_time >= time(15,1) and check_time <= time(15,3) :
+            if time(15,0) <= check_time <= time(15,2):
                 check_day = datetime.utcnow().weekday()
                 if check_day == 0 or check_day == 2 or check_day == 4 :
+                    await asyncio.sleep(60)
                     xkcd_comic = utils.get_xkcd()
                     await channel.send("New xkcd comic!")
                     await channel.send(xkcd_comic)
@@ -77,6 +59,30 @@ class MyBot(commands.Bot):
             # Sleep until the next hour
             minutesToSleep = 60 - datetime.utcnow().minute % 60
             await asyncio.sleep(minutesToSleep * 60)
+
+    async def send_motd(self):
+        """Sends the message of the day to the default channel"""
+        channel = self.get_channel(main_channel)
+        emojis = bot.get_guild(main_guild).emojis
+        
+        # Checks for any events for today in the group calendar
+        # If there's no event, grab today's fun holiday and react accordingly
+        today_event = utils.get_today_event()
+        if today_event == []:
+            today_event = utils.get_fun_holiday()
+            holiday = choice(today_event)
+            msg = await channel.send(f"Today is {holiday[1]}!")
+            await msg.add_reaction(choice(emojis))
+        else:
+            for event in today_event:
+                # Checks what type of custom event it is and acts accordingly
+                if event[0] == "H":
+                    msg = await channel.send(f"Today is {event[1]}!")
+                    await msg.add_reaction(choice(emojis))
+                elif event[0] == "B":
+                    user = bot.get_user(int(event[1]))
+                    msg = await channel.send(f"Today is {user.mention}'s Birthday!")
+                    await msg.add_reaction("🎂")
 
 bot = MyBot(command_prefix=prefix, description="G'day mate, it's JimmyD")
 
@@ -159,6 +165,10 @@ async def weather(ctx):
 
     await ctx.send(f"Currently at {default_loc} the temperature is {current_temp}°C (feels like {apparent_temp}°C)\n{precis}")
     await ctx.send(forecast_icon)
+
+@bot.command()
+async def today(ctx):
+    await bot.send_motd()
 
 @bot.command(hidden=True)
 async def commit(ctx):

@@ -124,8 +124,7 @@ def get_fun_holiday():
     Returns:
         List: List of today's events formatted ["H", name]
     """
-    # current_date = get_local_time()
-    current_date = datetime(2019,2,20)
+    current_date = get_local_time()
     today_event = []
 
     # Grabs the fun holiday table from the website
