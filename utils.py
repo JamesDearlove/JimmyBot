@@ -107,11 +107,10 @@ def get_today_event():
         for event in data :
             events.append(event.split(","))
 
-    date = get_local_time()
+    today_date = get_local_time()
     for event in events:
-        date_str = f"{event[0]}-{date.year}"
-        event_date = datetime.strptime(date_str, "%d-%M-%Y")
-        if date.date() == event_date.date():
+        event_date = datetime.strptime(event[0], "%d-%m")
+        if today_date.day == event_date.day and today_date.month == event_date.month:
             event_data = [event[1], event[2]]
             today_event.append(event_data)
     
