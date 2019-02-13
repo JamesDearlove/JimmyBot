@@ -197,12 +197,11 @@ async def mcstatus(ctx, *, inputArg = 'tms.jamesdearlove.com'):
         players = f'({players}) ' + ', '.join([x.name for x in status.players.sample])
 
     full_status = [
-        '**Minecraft Server Status**',
-        ':globe_with_meridians: ' + address,
-        ':loudspeaker: ' + motd,
-        ':desktop: ' + software,
-        ':left_right_arrow: ' + ping,
-        '👤 ' + players
+        '**Server:** ' + address,
+        '**Message:** ' + motd,
+        '**Version:** ' + software,
+        '**Ping:** ' + ping,
+        '**Players:** ' + players
     ]
 
     message = '\n'.join(full_status)
