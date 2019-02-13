@@ -178,6 +178,7 @@ async def commit(ctx):
 
 @bot.command()
 async def mcstatus(ctx, *, inputArg = 'tms.jamesdearlove.com'):
+    """Gets information about a Minecraft server."""
     server = MinecraftServer.lookup(inputArg)
 
     status = server.status() 
