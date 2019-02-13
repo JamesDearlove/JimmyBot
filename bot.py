@@ -184,7 +184,8 @@ async def mcstatus(ctx, *, inputArg = 'tms.jamesdearlove.com'):
     status = server.status() 
 
     address = f'{server.host}:{server.port}'
-    motd = status.description['text'] if type(status.description) is dict else status.description
+    # TODO: Regex away MC formatting codes
+    motd = status.description['text'] if type(status.description) is dict else status.description.strip()
 
     version = status.version.name
     software = version
