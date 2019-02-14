@@ -6,6 +6,8 @@ import math
 import feedparser
 import requests
 import bom
+
+from mcstatus import MinecraftServer
 from datetime import datetime, time
 from random import choice
 
@@ -173,6 +175,39 @@ async def today(ctx):
 @bot.command(hidden=True)
 async def commit(ctx):
     await ctx.send(f"Current commit: ```{currentCommit}```")    
+
+@bot.command()
+async def mcstatus(ctx, *, inputArg = 'tms.jamesdearlove.com'):
+    """Gets information about a Minecraft server."""
+    server = MinecraftServer.lookup(inputArg)
+
+    status = server.status() 
+
+    address = f'{server.host}:{server.port}'
+    # TODO: Regex away MC formatting codes
+    motd = status.description['text'] if type(status.description) is dict else status.description.strip()
+
+    version = status.version.name
+    software = version
+
+    ping = f'{status.latency} ms'
+
+    players = f'{status.players.online}/{status.players.max}'
+
+    if status.players.sample:
+        players = f'({players}) ' + ', '.join([x.name for x in status.players.sample])
+
+    full_status = [
+        '**Server:** ' + address,
+        '**Message:** ' + motd,
+        '**Version:** ' + software,
+        '**Ping:** ' + ping,
+        '**Players:** ' + players
+    ]
+
+    message = '\n'.join(full_status)
+
+    await ctx.send(message)
 
 # Error handlers
 @synth.error
