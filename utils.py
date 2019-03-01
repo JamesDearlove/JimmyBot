@@ -6,6 +6,7 @@ import requests
 from datetime import datetime
 import pytz
 from bs4 import BeautifulSoup
+from mcstatus import MinecraftServer
 
 def mock_message(msg:str):
     """
@@ -151,6 +152,57 @@ def get_local_time():
     utc_time = datetime.utcnow()
     tz = pytz.timezone('Australia/Brisbane')
     return pytz.utc.localize(utc_time, is_dst=None).astimezone(tz)
+
+def _try_get_mcstatus_text(server: str) -> str:
+    """Tries to get information about a Minecraft server. Could throw.
+    
+    Arguments:
+        server {str} -- Server address, optionally including port.
+    
+    Returns:
+        str -- Server information as a Markdown formatted string.
+    """
+    server = MinecraftServer.lookup(server)
+
+    status = server.status() 
+
+    address = f'{server.host}:{server.port}'
+    # TODO: Regex away MC formatting codes
+    motd = status.description['text'] if type(status.description) is dict else status.description.strip()
+
+    version = status.version.name
+    software = version
+
+    ping = f'{status.latency} ms'
+
+    players = f'{status.players.online}/{status.players.max}'
+
+    if status.players.sample:
+        players = f'({players}) ' + ', '.join([x.name for x in status.players.sample])
+
+    full_status = [
+        '**Server:** ' + address,
+        '**Message:** ' + motd,
+        '**Version:** ' + software,
+        '**Ping:** ' + ping,
+        '**Players:** ' + players
+    ]
+
+    return '\n'.join(full_status)
+
+def get_mcstatus_text(server: str) -> str:
+    """Returns information about a Minecraft server or an error message.
+    
+    Arguments:
+        server {str} -- Server address.
+    
+    Returns:
+        str -- Information or error, Markdown formatted.
+    """
+    try:
+        return _try_get_mcstatus_text(server)
+    except Exception as e:
+        return f'**Error:** {e}'
 
 if __name__ == "__main__":
     get_fun_holiday()
