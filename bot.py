@@ -7,7 +7,7 @@ import feedparser
 import requests
 import bom
 
-from datetime import datetime, time
+from datetime import datetime, time, timezone
 from random import choice
 
 from discord.ext import commands
@@ -26,10 +26,47 @@ class MyBot(commands.Bot):
 
         self.bg_task = self.loop.create_task(self.bot_schedule())
 
+        self.loop.create_task(self.mcstatus_loop())
+
     async def on_ready(self):
         print(f"Logged in as {bot.user.name}")
         print(f"With the ID {bot.user.id}")
+
+    async def mcstatus_loop(self):
+        await self.wait_until_ready()
+        # could break if there is more than one 'minecraft-life' channel.
+        # TODO: avoid requiring a #minecraft-life channel.
+        channel = next(ch for ch in self.get_all_channels() if ch.name == 'minecraft-life')
         
+        # used to make the datetime timezone-aware
+        local_tz = datetime.now(timezone.utc).astimezone().tzinfo
+        def make_embed():
+            embed = discord.Embed(description=utils.get_mcstatus_text('tms.jamesdearlove.com'))
+            embed.colour = 0x5b8731 # Minecraft green
+            embed.set_footer(text='!mcstatus')
+            embed.timestamp = datetime.now(tz=local_tz)
+            return embed
+
+        # look for a pinned message with !mcstatus in the embed footer.
+        pins = await channel.pins()
+        mcstatus_id = None
+        for p in pins:
+            try:
+                if p.embeds[0].footer.text == '!mcstatus':
+                    mcstatus_id = p.id
+                    break
+            except Exception as e:
+                continue 
+        if mcstatus_id is None:
+            # no existing mcstatus message. send a new one.
+            mcstatus_id = (await channel.send(embed=make_embed())).id
+
+        while not self.is_closed():
+            # update mcstatus message every 5 minutes.
+            message = await channel.get_message(mcstatus_id)
+            await message.edit(embed=make_embed())
+            await asyncio.sleep(5*60)
+
     # Runs tasks at set times
     async def bot_schedule(self):
         await self.wait_until_ready() 
@@ -178,13 +215,7 @@ async def commit(ctx):
 @bot.command()
 async def mcstatus(ctx, *, inputArg = 'tms.jamesdearlove.com'):
     """Gets information about a Minecraft server."""
-
-    try:
-        message = utils.get_mcstatus_text(inputArg)
-    except Exception as e:
-        message = f'**Error:** {e}'
-
-    await ctx.send(message)
+    await ctx.send(utils.get_mcstatus_text(inputArg))
 
 # Error handlers
 @synth.error
