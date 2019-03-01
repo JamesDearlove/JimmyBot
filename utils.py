@@ -153,8 +153,8 @@ def get_local_time():
     tz = pytz.timezone('Australia/Brisbane')
     return pytz.utc.localize(utc_time, is_dst=None).astimezone(tz)
 
-def get_mcstatus_text(server: str) -> str:
-    """Gets information about a Minecraft server.
+def _try_get_mcstatus_text(server: str) -> str:
+    """Tries to get information about a Minecraft server. Could throw.
     
     Arguments:
         server {str} -- Server address, optionally including port.
@@ -190,6 +190,19 @@ def get_mcstatus_text(server: str) -> str:
 
     return '\n'.join(full_status)
 
+def get_mcstatus_text(server: str) -> str:
+    """Returns information about a Minecraft server or an error message.
+    
+    Arguments:
+        server {str} -- Server address.
+    
+    Returns:
+        str -- Information or error, Markdown formatted.
+    """
+    try:
+        return _try_get_mcstatus_text(server)
+    except Exception as e:
+        return f'**Error:** {e}'
 
 if __name__ == "__main__":
     get_fun_holiday()
