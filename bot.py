@@ -204,10 +204,6 @@ async def weather(ctx):
     await ctx.send(f"Currently at {default_loc} the temperature is {current_temp}°C (feels like {apparent_temp}°C)\n{precis}")
     await ctx.send(forecast_icon)
 
-@bot.command()
-async def today(ctx):
-    await bot.send_motd()
-
 @bot.command(hidden=True)
 async def commit(ctx):
     await ctx.send(f"Current commit: ```{currentCommit}```")    
