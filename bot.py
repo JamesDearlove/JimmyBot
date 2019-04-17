@@ -63,7 +63,7 @@ class MyBot(commands.Bot):
 
         while not self.is_closed():
             # update mcstatus message every 5 minutes.
-            message = await channel.get_message(mcstatus_id)
+            message = await channel.fetch_message(mcstatus_id)
             await message.edit(embed=make_embed())
             await asyncio.sleep(5*60)
 
@@ -212,6 +212,22 @@ async def commit(ctx):
 async def mcstatus(ctx, *, inputArg = 'tms.jamesdearlove.com'):
     """Gets information about a Minecraft server."""
     await ctx.send(utils.get_mcstatus_text(inputArg))
+
+dabs = ["normal", "dabbing", "fast", "hyper", "ludicrous"]
+
+@bot.command()
+async def dab(ctx, speed = "normal"):
+    """Dab on command. Speeds between 0-4 or normal, dabbing, fast, hyper, or ludicrous"""
+    if not any(speed in s for s in dabs):
+        if (speed.isdigit()):
+            speed_int = int(speed)
+            speed = dabs[speed_int]
+        else:
+            return
+    
+    dab_image = discord.File(f"emotes/dab_{speed}.gif", "dab.gif")
+
+    await ctx.send(file=dab_image)
 
 # Error handlers
 @synth.error
