@@ -6,6 +6,7 @@ import math
 import feedparser
 import requests
 import bom
+import shlex
 
 from datetime import datetime, time, timezone
 from random import choice
@@ -228,6 +229,38 @@ async def dab(ctx, speed = "normal"):
     dab_image = discord.File(f"emotes/dab_{speed}.gif", "dab.gif")
 
     await ctx.send(file=dab_image)
+
+
+@bot.command()
+async def poll(ctx, question, *, options=None):
+    """Creates a poll, defaults to Yes/No with a maximum of 9 options
+    Syntax: !poll "Question" "Option 1" "Option 2" ..."""
+    # Checks if the user specified options, assume yes/no if no options are given
+    responses = []
+    if options == None:
+        responses.append(("Yes", "👍"))
+        responses.append(("No", "👎"))
+    else:
+        # Splits the options argument into different responses
+        split_options = shlex.split(options)
+        if split_options.__len__() > 9:
+            await ctx.send("Cannot have more than 9 options")
+            return
+        for indx, s in enumerate(split_options):
+            responses.append((s, f"{indx + 1}\N{COMBINING ENCLOSING KEYCAP}"))
+
+    # Create an embed for the message
+    poll_creator = ctx.message.author.display_name
+    embed_text = []
+    for answer in responses:
+        embed_text.append(f"{answer[1]} {answer[0]}\n")
+    embed = discord.Embed(title=question, description="\n".join(embed_text))
+    embed.set_footer(text=f"Poll created by {poll_creator}")
+    
+    # Send message and add reacts to the message
+    message = await ctx.send(embed=embed)
+    for answer in responses:
+        await message.add_reaction(answer[1])
 
 # Error handlers
 @synth.error
