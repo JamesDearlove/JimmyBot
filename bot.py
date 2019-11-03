@@ -1,13 +1,14 @@
 import discord
-import utils
 import asyncio
 import os
 import math
 import feedparser
 import requests
-import bom
 import shlex
-import psycopg2
+
+import database
+import bom
+import utils
 
 from datetime import datetime, time, timezone
 from random import choice
@@ -15,13 +16,14 @@ from random import choice
 from discord.ext import commands
 from discord.utils import get
 
-DATABASE_URL = os.environ['DATABASE_URL']
-# database_con = psycopg2.connect(DATABASE_URL, sslmode='require')
+import atexit
+
 CURRENT_COMMIT = os.environ["HEROKU_SLUG_COMMIT"]
 
 MAIN_CHANNEL = int(os.environ["DEFAULT_CHANNEL_ID"])
 MAIN_GUILD = int(os.environ["DEFAULT_GUILD_ID"])
 
+dbConnection = database.Database()
 
 prefix = "!"
 activity = utils.jims_picker()
@@ -130,6 +132,12 @@ class MyBot(commands.Bot):
                     await msg.add_reaction("🎂")
 
 bot = MyBot(command_prefix=prefix, description="G'day mate, it's JimmyD")
+
+@atexit.register
+def goodbye():
+    print("Shutting down")
+    dbConnection.close()
+    print("See you later")
 
 @bot.command()
 async def hello(ctx):
@@ -268,7 +276,39 @@ async def poll(ctx, question, *, options=None):
     for answer in responses:
         await message.add_reaction(answer[1])
 
+@bot.command()
+@commands.has_permissions(manage_guild=True)
+async def listsettings(ctx):
+    settingData = dbConnection.fetchSetting(ctx.guild.id)
+
+    if settingData == None or str(settingData) == '':
+        await ctx.send("This server doesn't have any custom settings.")
+        return
+
+    output = ""
+    if settingData.motd_channel != None:
+        channel = bot.get_channel(settingData.motd_channel)
+        output += f"**MOTD Channel:** {channel}\n"
+    if settingData.mcstatus_server != None:
+        output += f"**Default MC Server Status:** {settingData.mcstatus_server}\n"
+
+    embed = discord.Embed(title=f"Settings for {ctx.guild}", description=output)
+    await ctx.send(embed=embed)
+
+@bot.command()
+@commands.has_permissions(manage_guild=True)
+async def clearsettings(ctx):
+    dbConnection.deleteSetting(ctx.guild.id)
+
+    await ctx.send(f"Settings cleared for {ctx.guild}")
+
 # Error handlers
+@listsettings.error
+@clearsettings.error
+async def setting_error(ctx, error):
+    if isinstance(error, commands.CheckFailure):
+        await ctx.send("You don't have authority over me")
+
 @synth.error
 async def synth_error(ctx, error):
     if isinstance(error, commands.CommandInvokeError):
