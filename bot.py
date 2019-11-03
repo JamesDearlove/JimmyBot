@@ -7,6 +7,7 @@ import feedparser
 import requests
 import bom
 import shlex
+import psycopg2
 
 from datetime import datetime, time, timezone
 from random import choice
@@ -14,12 +15,16 @@ from random import choice
 from discord.ext import commands
 from discord.utils import get
 
-currentCommit = os.environ.get("HEROKU_SLUG_COMMIT")
+DATABASE_URL = os.environ['DATABASE_URL']
+# database_con = psycopg2.connect(DATABASE_URL, sslmode='require')
+CURRENT_COMMIT = os.environ["HEROKU_SLUG_COMMIT"]
+
+MAIN_CHANNEL = int(os.environ["DEFAULT_CHANNEL_ID"])
+MAIN_GUILD = int(os.environ["DEFAULT_GUILD_ID"])
+
 
 prefix = "!"
 activity = utils.jims_picker()
-main_channel = int(os.environ.get("DEFAULT_CHANNEL_ID"))
-main_guild = int(os.environ.get("DEFAULT_GUILD_ID"))
 
 class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
@@ -27,7 +32,8 @@ class MyBot(commands.Bot):
 
         self.bg_task = self.loop.create_task(self.bot_schedule())
 
-        self.loop.create_task(self.mcstatus_loop())
+        # Disabled as no server is running.
+        # self.loop.create_task(self.mcstatus_loop())
 
     async def on_ready(self):
         print(f"Logged in as {bot.user.name}")
@@ -71,7 +77,7 @@ class MyBot(commands.Bot):
     # Runs tasks at set times
     async def bot_schedule(self):
         await self.wait_until_ready() 
-        channel = self.get_channel(main_channel)
+        channel = self.get_channel(MAIN_CHANNEL)
 
         while not self.is_closed():
             # Update presence message
@@ -101,8 +107,8 @@ class MyBot(commands.Bot):
 
     async def send_motd(self):
         """Sends the message of the day to the default channel"""
-        channel = self.get_channel(main_channel)
-        emojis = bot.get_guild(main_guild).emojis
+        channel = self.get_channel(MAIN_CHANNEL)
+        emojis = bot.get_guild(MAIN_GUILD).emojis
         
         # Checks for any events for today in the group calendar
         # If there's no event, grab today's fun holiday and react accordingly
@@ -207,7 +213,7 @@ async def weather(ctx):
 
 @bot.command(hidden=True)
 async def commit(ctx):
-    await ctx.send(f"Current commit: ```{currentCommit}```")    
+    await ctx.send(f"Current commit: ```{CURRENT_COMMIT}```")    
 
 @bot.command()
 async def mcstatus(ctx, *, inputArg = 'tms.jamesdearlove.com'):

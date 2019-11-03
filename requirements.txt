@@ -1,6 +1,7 @@
-discord.py[voice]
-feedparser
-requests
-beautifulsoup4
-pytz
-mcstatus
+discord.py==1.2.4
+feedparser==5.2.1
+requests==2.21.0
+beautifulsoup4==4.7.1
+pytz==2018.9
+mcstatus==2.2
+psycopg2-binary==2.8.4
