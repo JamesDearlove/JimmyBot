@@ -210,6 +210,12 @@ async def commit(ctx):
     await ctx.send(f"Current commit: ```{currentCommit}```")    
 
 @bot.command()
+async def holiday(ctx):
+    today = utils.get_fun_holiday()
+    for event in today:
+        await ctx.send("Today is " + event[1])
+
+@bot.command()
 async def mcstatus(ctx, *, inputArg = 'tms.jamesdearlove.com'):
     """Gets information about a Minecraft server."""
     await ctx.send(utils.get_mcstatus_text(inputArg))
