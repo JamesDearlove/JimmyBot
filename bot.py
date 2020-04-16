@@ -27,7 +27,7 @@ class MyBot(commands.Bot):
 
         self.bg_task = self.loop.create_task(self.bot_schedule())
 
-        self.loop.create_task(self.mcstatus_loop())
+        # self.loop.create_task(self.mcstatus_loop())
 
     async def on_ready(self):
         print(f"Logged in as {bot.user.name}")
@@ -90,7 +90,6 @@ class MyBot(commands.Bot):
             if time(15,0) <= check_time <= time(15,2):
                 check_day = datetime.utcnow().weekday()
                 if check_day == 0 or check_day == 2 or check_day == 4 :
-                    await asyncio.sleep(60)
                     xkcd_comic = utils.get_xkcd()
                     await channel.send("New xkcd comic!")
                     await channel.send(xkcd_comic)
