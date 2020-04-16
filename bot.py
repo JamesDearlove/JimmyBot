@@ -1,12 +1,15 @@
 import discord
-import utils
 import asyncio
 import os
 import math
 import feedparser
 import requests
-import bom
 import shlex
+
+import database
+import bom
+import utils
+from settings import *
 
 from datetime import datetime, time, timezone
 from random import choice
@@ -14,12 +17,17 @@ from random import choice
 from discord.ext import commands
 from discord.utils import get
 
-currentCommit = os.environ.get("HEROKU_SLUG_COMMIT")
+import atexit
+
+CURRENT_COMMIT = os.environ["HEROKU_SLUG_COMMIT"]
+
+MAIN_CHANNEL = int(os.environ["DEFAULT_CHANNEL_ID"])
+MAIN_GUILD = int(os.environ["DEFAULT_GUILD_ID"])
+
+dbConnection = database.Database()
 
 prefix = "!"
 activity = utils.jims_picker()
-main_channel = int(os.environ.get("DEFAULT_CHANNEL_ID"))
-main_guild = int(os.environ.get("DEFAULT_GUILD_ID"))
 
 class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
@@ -27,6 +35,7 @@ class MyBot(commands.Bot):
 
         self.bg_task = self.loop.create_task(self.bot_schedule())
 
+        # Disabled as no server is running.
         # self.loop.create_task(self.mcstatus_loop())
 
     async def on_ready(self):
@@ -71,7 +80,7 @@ class MyBot(commands.Bot):
     # Runs tasks at set times
     async def bot_schedule(self):
         await self.wait_until_ready() 
-        channel = self.get_channel(main_channel)
+        channel = self.get_channel(MAIN_CHANNEL)
 
         while not self.is_closed():
             # Update presence message
@@ -83,46 +92,76 @@ class MyBot(commands.Bot):
 
             # Good morning message (9am)
             if time(9,0) <= check_time <= time(9,2):
-                await channel.send("Good Morning!")
                 await self.send_motd()
 
             # New xkcd comic (3pm)
             if time(15,0) <= check_time <= time(15,2):
                 check_day = datetime.utcnow().weekday()
                 if check_day == 0 or check_day == 2 or check_day == 4 :
-                    xkcd_comic = utils.get_xkcd()
-                    await channel.send("New xkcd comic!")
-                    await channel.send(xkcd_comic)
+                    await self.send_xkcd()
             
             # Sleep until the next hour
             minutesToSleep = 60 - datetime.utcnow().minute % 60
             await asyncio.sleep(minutesToSleep * 60)
 
+    async def send_xkcd(self):
+        xkcd_comic = utils.get_xkcd()
+
+        servers = dbConnection.fetchAllSettings()
+
+        for server in servers:
+            if server.xkcd_channel == None:
+                continue
+
+            channel = self.get_channel(server.motd_channel)
+
+            await channel.send("New xkcd comic!")
+            await channel.send(xkcd_comic)
+
     async def send_motd(self):
         """Sends the message of the day to the default channel"""
-        channel = self.get_channel(main_channel)
-        emojis = bot.get_guild(main_guild).emojis
-        
-        # Checks for any events for today in the group calendar
-        # If there's no event, grab today's fun holiday and react accordingly
-        today_event = utils.get_today_event()
-        if today_event == []:
-            today_event = utils.get_fun_holiday()
-            holiday = choice(today_event)
-            msg = await channel.send(f"Today is {holiday[1]}!")
-            await msg.add_reaction(choice(emojis))
-        else:
-            for event in today_event:
-                # Checks what type of custom event it is and acts accordingly
-                if event[0] == "H":
-                    msg = await channel.send(f"Today is {event[1]}!")
-                    await msg.add_reaction(choice(emojis))
-                elif event[0] == "B":
-                    user = bot.get_user(int(event[1]))
-                    msg = await channel.send(f"Today is {user.mention}'s Birthday!")
-                    await msg.add_reaction("🎂")
+        # channel = self.get_channel(MAIN_CHANNEL)
+        servers = dbConnection.fetchAllSettings()
+
+        todays_holidays = utils.get_fun_holiday()
+
+        for server in servers:
+            if server.motd_channel == None:
+                continue
+
+            channel = self.get_channel(server.motd_channel)
+            emojis = bot.get_guild(server.server_id).emojis
+            if len(emojis) == 0:
+                emojis = ["🎉"]
+            
+            await channel.send("Good Morning!")
+
+            # Checks for any events for today in the group calendar
+            # If there's no event, grab today's fun holiday and react accordingly
+            # TODO: Move group events out to database (Currently checks if in home server)
+            today_event = utils.get_today_event()
+            if today_event == [] or server.server_id != MAIN_GUILD:
+                holiday = choice(todays_holidays)
+                msg = await channel.send(f"Today is {holiday[1]}!")
+                await msg.add_reaction(choice(emojis))
+            else:
+                for event in today_event:
+                    # Checks what type of custom event it is and acts accordingly
+                    if event[0] == "H":
+                        msg = await channel.send(f"Today is {event[1]}!")
+                        await msg.add_reaction(choice(emojis))
+                    elif event[0] == "B":
+                        user = bot.get_user(int(event[1]))
+                        msg = await channel.send(f"Today is {user.mention}'s Birthday!")
+                        await msg.add_reaction("🎂")
 
 bot = MyBot(command_prefix=prefix, description="G'day mate, it's JimmyD")
+
+@atexit.register
+def goodbye():
+    print("Shutting down")
+    dbConnection.close()
+    print("See you later")
 
 @bot.command()
 async def hello(ctx):
@@ -206,7 +245,7 @@ async def weather(ctx):
 
 @bot.command(hidden=True)
 async def commit(ctx):
-    await ctx.send(f"Current commit: ```{currentCommit}```")    
+    await ctx.send(f"Current commit: ```{CURRENT_COMMIT}```")    
 
 @bot.command()
 async def holiday(ctx):
@@ -267,7 +306,29 @@ async def poll(ctx, question, *, options=None):
     for answer in responses:
         await message.add_reaction(answer[1])
 
+bot.add_cog(Settings(bot, dbConnection))
+
+# @bot.command()
+
+# async def settings(ctx, option = "", *, args = ""):
+#     if option == "clear":
+#         if args == "all":
+#             await clearAllSettings(ctx)
+#         else:
+#             await ctx.send("Invalid option")
+#     elif option == "set":
+#         await setSetting(ctx, args)
+#     elif option == "list":
+#         await listSettings(ctx)
+#     else:
+#         await ctx.send("Invalid option")
+
 # Error handlers
+# @settings.error
+async def setting_error(ctx, error):
+    if isinstance(error, commands.CheckFailure):
+        await ctx.send("You don't have authority over me")
+
 @synth.error
 async def synth_error(ctx, error):
     if isinstance(error, commands.CommandInvokeError):
