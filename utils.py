@@ -7,6 +7,7 @@ from datetime import datetime
 import pytz
 from bs4 import BeautifulSoup
 from mcstatus import MinecraftServer
+import re
 
 def mock_message(msg:str):
     """
@@ -130,7 +131,8 @@ def get_fun_holiday():
     # Grabs the fun holiday table from the website
     html = requests.get("https://www.timeanddate.com/holidays/fun?country=29&ftz=179").content
     soup = BeautifulSoup(html, 'html.parser')
-    holiday_table = soup.find_all(class_='c0') + soup.find_all(class_='c1') + soup.find_all(class_='hl')
+    # holiday_table = soup.find_all(class_='c0') + soup.find_all(class_='c1') + soup.find_all(class_='hl')
+    holiday_table = soup.find_all(class_='hl')
 
     # Finds today's events in the table and adds them to the list
     for row in holiday_table:
@@ -139,7 +141,15 @@ def get_fun_holiday():
         holiday_date = datetime.strptime(date_string, '%d %b')
         if holiday_date.day == current_date.day and holiday_date.month == current_date.month:
             today_event.append(["H", event_string])
-    
+        else:
+            # TODO: More permanent solution then skipping to the next sibling
+            nrow = row.next_sibling
+            date_string = nrow.find('th').get_text(strip=True)
+            event_string = nrow.find('a').get_text(strip=True)
+            holiday_date = datetime.strptime(date_string, '%d %b')
+            if holiday_date.day == current_date.day and holiday_date.month == current_date.month:
+                today_event.append(["H", event_string])
+        
     return today_event
 
 def get_local_time():
@@ -203,6 +213,18 @@ def get_mcstatus_text(server: str) -> str:
         return _try_get_mcstatus_text(server)
     except Exception as e:
         return f'**Error:** {e}'
+
+def strip_non_digits(input: str) -> str:
+    """
+    Strips any nondigit characters in the input and returns the resulting numbers.
+
+    Parameters:
+        input {str}: The string to strip all non-digit characters from.
+
+    Returns:
+        str: The resulting digits as a string.
+    """
+    return re.sub("\D", "", input)
 
 if __name__ == "__main__":
     get_fun_holiday()

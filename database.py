@@ -29,6 +29,12 @@ class Database():
         session.commit()
         session.close()
 
+    def createSetting(self, sid):
+        session = Session()        
+        session.add(Setting(server_id = sid))
+        session.commit()
+        session.close()
+
     def fetchSetting(self, server_id):
         session = Session()
         settingData = session.query(Setting).filter(Setting.server_id==server_id).first()
@@ -51,9 +57,25 @@ class Database():
             print(setting)
         session.close()
 
-    def updateSetting(self, server_id, motd_channel):
+    def updateMotdChannel(self, server_id, channel):
         session = Session()
-        dataToUpdate = {Setting.motd_channel: motd_channel}
+        dataToUpdate = {Setting.motd_channel: channel}
+        settingData = session.query(Setting).filter(Setting.server_id==server_id)
+        settingData.update(dataToUpdate)
+        session.commit()
+        session.close()
+
+    def updateMcServer(self, server_id, mcstatus_server):
+        session = Session()
+        dataToUpdate = {Setting.mcstatus_server: mcstatus_server}
+        settingData = session.query(Setting).filter(Setting.server_id==server_id)
+        settingData.update(dataToUpdate)
+        session.commit()
+        session.close()
+
+    def updateXkcdChannel(self, server_id, channel):
+        session = Session()
+        dataToUpdate = {Setting.xkcd_channel: channel}
         settingData = session.query(Setting).filter(Setting.server_id==server_id)
         settingData.update(dataToUpdate)
         session.commit()
@@ -70,11 +92,12 @@ class Setting(Base):
     __tablename__ = 'settings'
     server_id = Column(Integer, primary_key=True)
     motd_channel = Column(Integer)
+    xkcd_channel = Column(Integer)
     mcstatus_server = Column(String)
 
     def __repr__(self): 
-        return "<Setting(server_id='%s', motd_channel='%s', mcstatus_server='%s')>" % \
-                (self.server_id, self.motd_channel, self.mcstatus_server)
+        return "<Setting(server_id='%s', motd_channel='%s', mcstatus_server='%s', xkcd_channel='%s')>" % \
+                (self.server_id, self.motd_channel, self.mcstatus_server, self.xkcd_channel)
 
     def __str__(self):
         output = ''
@@ -82,5 +105,7 @@ class Setting(Base):
             output += f'MOTD Channel: {self.motd_channel}\n'
         if self.mcstatus_server != None:
             output += f'Default MC Server Status: {self.mcstatus_server}\n'
+        if self.xkcd_channel != None:
+            output += f'xkcd Channel: {self.xkcd_channel}\n'
 
         return output
