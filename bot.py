@@ -129,7 +129,7 @@ class MyBot(commands.Bot):
             if server.motd_channel == None:
                 continue
 
-            channel = self.get_channel(server.motd_channel)
+            channel = bot.get_channel(server.motd_channel)
             emojis = bot.get_guild(server.server_id).emojis
             if len(emojis) == 0:
                 emojis = ["🎉"]
@@ -141,8 +141,11 @@ class MyBot(commands.Bot):
             # TODO: Move group events out to database (Currently checks if in home server)
             today_event = utils.get_today_event()
             if today_event == [] or server.server_id != MAIN_GUILD:
-                holiday = choice(todays_holidays)
-                msg = await channel.send(f"Today is {holiday[1]}!")
+                if len(todays_holidays) == 0:
+                    holiday = "Make up a Holiday Day"
+                else:
+                    holiday = choice(todays_holidays)
+                msg = await channel.send(f"Today is {holiday}!")
                 await msg.add_reaction(choice(emojis))
             else:
                 for event in today_event:
@@ -307,8 +310,6 @@ async def poll(ctx, question, *, options=None):
         await message.add_reaction(answer[1])
 
 bot.add_cog(Settings(bot, dbConnection))
-
-# @bot.command()
 
 # async def settings(ctx, option = "", *, args = ""):
 #     if option == "clear":

@@ -123,7 +123,7 @@ def get_fun_holiday():
     Returns a fun holiday from www.timedate.com
 
     Returns:
-        List: List of today's events formatted ["H", name]
+        List: List of today's events
     """
     current_date = get_local_time()
     today_event = []
@@ -140,7 +140,7 @@ def get_fun_holiday():
         event_string = row.find('a').get_text(strip=True)
         holiday_date = datetime.strptime(date_string, '%d %b')
         if holiday_date.day == current_date.day and holiday_date.month == current_date.month:
-            today_event.append(["H", event_string])
+            today_event.append(event_string)
         else:
             # TODO: More permanent solution then skipping to the next sibling
             nrow = row.next_sibling
@@ -148,7 +148,7 @@ def get_fun_holiday():
             event_string = nrow.find('a').get_text(strip=True)
             holiday_date = datetime.strptime(date_string, '%d %b')
             if holiday_date.day == current_date.day and holiday_date.month == current_date.month:
-                today_event.append(["H", event_string])
+                today_event.append(event_string)
         
     return today_event
 
