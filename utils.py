@@ -132,25 +132,31 @@ def get_fun_holiday():
     html = requests.get("https://www.timeanddate.com/holidays/fun?country=29&ftz=179").content
     soup = BeautifulSoup(html, 'html.parser')
     # holiday_table = soup.find_all(class_='c0') + soup.find_all(class_='c1') + soup.find_all(class_='hl')
-    holiday_table = soup.find_all(class_='hl')
+    holiday_table = soup.find(class_='zebra fw tb-hover').find("tbody")
+    table_elements = holiday_table.find_all("tr")    
 
     # Finds today's events in the table and adds them to the list
-    for row in holiday_table:
-        date_string = row.find('th').get_text(strip=True)
-        event_string = row.find('a').get_text(strip=True)
-        holiday_date = datetime.strptime(date_string, '%d %b')
-        if holiday_date.day == current_date.day and holiday_date.month == current_date.month:
-            today_event.append(event_string)
-        else:
-            # TODO: More permanent solution then skipping to the next sibling
-            nrow = row.next_sibling
-            date_string = nrow.find('th').get_text(strip=True)
-            event_string = nrow.find('a').get_text(strip=True)
+    for row in table_elements:
+        if get_class_or_none(row) != "tb-sub" and get_class_or_none(row) != "hl":
+            date_string = row.find('th').get_text(strip=True)
+            event_string = row.find('a').get_text(strip=True)
             holiday_date = datetime.strptime(date_string, '%d %b')
             if holiday_date.day == current_date.day and holiday_date.month == current_date.month:
                 today_event.append(event_string)
-        
+    
+    # If there was no event in the calendar, grab a generic one
+    if len(today_event) == 0:
+        today_event.append(choice(
+            ["Make up a Holiday Day","Don't do Work Day","Actually do Work Day", "Gaming Day"]))
+
+
     return today_event
+
+def get_class_or_none(element):
+    try:
+        return element["class"][0]
+    except KeyError:
+        return None
 
 def get_local_time():
     """

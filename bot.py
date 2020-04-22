@@ -141,10 +141,7 @@ class MyBot(commands.Bot):
             # TODO: Move group events out to database (Currently checks if in home server)
             today_event = utils.get_today_event()
             if today_event == [] or server.server_id != MAIN_GUILD:
-                if len(todays_holidays) == 0:
-                    holiday = "Make up a Holiday Day"
-                else:
-                    holiday = choice(todays_holidays)
+                holiday = choice(todays_holidays)
                 msg = await channel.send(f"Today is {holiday}!")
                 await msg.add_reaction(choice(emojis))
             else:
@@ -254,7 +251,7 @@ async def commit(ctx):
 async def holiday(ctx):
     today = utils.get_fun_holiday()
     for event in today:
-        await ctx.send("Today is " + event[1])
+        await ctx.send("Today is " + event)
 
 @bot.command()
 async def mcstatus(ctx, *, inputArg = 'tms.jamesdearlove.com'):
