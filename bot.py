@@ -28,6 +28,7 @@ dbConnection = database.Database()
 
 prefix = "!"
 activity = utils.jims_picker()
+customActivity = False
 
 class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
@@ -84,8 +85,8 @@ class MyBot(commands.Bot):
 
         while not self.is_closed():
             # Update presence message
-            activity = utils.jims_picker()
-            await bot.change_presence(activity=discord.Game(activity))
+            if customActivity == False:
+                await self.update_activity()
 
             # Grabs the current time (Brisbane timezone)
             check_time = utils.get_local_time().time()
@@ -103,6 +104,10 @@ class MyBot(commands.Bot):
             # Sleep until the next hour
             minutesToSleep = 60 - datetime.utcnow().minute % 60
             await asyncio.sleep(minutesToSleep * 60)
+
+    async def update_activity(self):
+        activity = utils.jims_picker()
+        await bot.change_presence(activity=discord.Game(activity))
 
     async def send_xkcd(self):
         xkcd_comic = utils.get_xkcd()
@@ -307,6 +312,16 @@ async def poll(ctx, question, *, options=None):
         await message.add_reaction(answer[1])
 
 bot.add_cog(Settings(bot, dbConnection))
+
+@bot.command()
+@commands.is_owner()
+async def setactivity(ctx, *, motd = ""):
+    if motd == "":
+        customActivity = False
+        await bot.update_activity()
+    else:
+        customActivity = True
+        await bot.change_presence(activity=discord.Game(motd))
 
 # async def settings(ctx, option = "", *, args = ""):
 #     if option == "clear":
