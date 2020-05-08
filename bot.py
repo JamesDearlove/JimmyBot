@@ -28,7 +28,6 @@ dbConnection = database.Database()
 
 prefix = "!"
 activity = utils.jims_picker()
-customActivity = False
 
 class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
@@ -84,10 +83,6 @@ class MyBot(commands.Bot):
         channel = self.get_channel(MAIN_CHANNEL)
 
         while not self.is_closed():
-            # Update presence message
-            if customActivity == False:
-                await self.update_activity()
-
             # Grabs the current time (Brisbane timezone)
             check_time = utils.get_local_time().time()
 
@@ -312,29 +307,6 @@ async def poll(ctx, question, *, options=None):
         await message.add_reaction(answer[1])
 
 bot.add_cog(Settings(bot, dbConnection))
-
-@bot.command()
-@commands.is_owner()
-async def setactivity(ctx, *, motd = ""):
-    if motd == "":
-        customActivity = False
-        await bot.update_activity()
-    else:
-        customActivity = True
-        await bot.change_presence(activity=discord.Game(motd))
-
-# async def settings(ctx, option = "", *, args = ""):
-#     if option == "clear":
-#         if args == "all":
-#             await clearAllSettings(ctx)
-#         else:
-#             await ctx.send("Invalid option")
-#     elif option == "set":
-#         await setSetting(ctx, args)
-#     elif option == "list":
-#         await listSettings(ctx)
-#     else:
-#         await ctx.send("Invalid option")
 
 # Error handlers
 # @settings.error
