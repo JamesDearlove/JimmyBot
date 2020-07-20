@@ -84,6 +84,7 @@ class MyBot(commands.Bot):
 
         while not self.is_closed():
             # Grabs the current time (Brisbane timezone)
+            await self.update_activity()
             check_time = utils.get_local_time().time()
 
             # Good morning message (9am)

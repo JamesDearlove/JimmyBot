@@ -18,6 +18,7 @@ class Settings(commands.Cog):
     @commands.command() 
     @commands.has_permissions(manage_guild=True)
     async def slist(self, ctx):
+        """List all the current JimmyD settings for this server."""
         settingData = self.db.fetchSetting(ctx.guild.id)
 
         if settingData == None or str(settingData) == '':
@@ -41,11 +42,13 @@ class Settings(commands.Cog):
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def sclear(self, ctx, setting):
+        """Clear value for given setting."""
         await self.sset(ctx, setting)
 
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def sclearall(self, ctx):
+        """Clears all JimmyD settings for this server."""
         settingData = self.db.fetchSetting(ctx.guild.id)
 
         if settingData == None or str(settingData) == '':
@@ -59,6 +62,7 @@ class Settings(commands.Cog):
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def sset(self, ctx, setting, value = None):
+        """Sets the value of the given setting."""
         settingUpdated = False
 
         settingData = self.db.fetchSetting(ctx.guild.id)
