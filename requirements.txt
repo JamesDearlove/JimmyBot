@@ -1,6 +1,6 @@
 discord.py==1.5.1
 feedparser==5.2.1
-requests==2.21.0
+requests==2.31.0
 beautifulsoup4==4.7.1
 pytz==2020.1
 mcstatus==2.2
